@@ -13,7 +13,7 @@ type Props = {
   nombre: string
 }
 
-export default function ProductGallery({ images, nombre }: Props) {
+export default function ProductGallery({ images }: Props) {
   const [activeIndex, setActiveIndex] = useState(0)
 
   const prev = useCallback(() => {
