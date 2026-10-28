@@ -54,7 +54,6 @@ function getImage(img: ImageRelation): string | null {
 
 export default function HeroContentForm({
   block,
-  imageLibrary,
   seccion,
   titulo,
 }: Props) {
