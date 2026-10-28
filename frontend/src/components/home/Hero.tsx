@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import SectionText from '../ui/SectionTest'
 
@@ -17,9 +18,89 @@ type HeroProps = {
   buttons?: HeroButton[]  // Botones opcionales y configurables
 }
 
+type HeroFitClamp = 'none' | 'title' | 'both'
+
+const HERO_FIT_SCALES = [1, 0.92, 0.85, 0.78, 0.72, 0.66, 0.6, 0.55, 0.5, 0.45]
+
+function useHeroFit(key: string) {
+  const frameRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const frame = frameRef.current
+    const content = contentRef.current
+    if (!frame || !content) return
+
+    let raf = 0
+
+    const measure = () => {
+      // La key forma parte de la medición: cambia cuando cambia el contenido.
+      content.dataset.heroFitKey = key
+
+      const styles = window.getComputedStyle(frame)
+      const paddingTop = parseFloat(styles.paddingTop) || 0
+      const paddingBottom = parseFloat(styles.paddingBottom) || 0
+      const available = frame.clientHeight - paddingTop - paddingBottom
+      if (available <= 0) return
+
+      const fits = () => content.getBoundingClientRect().height <= available
+      const apply = (scale: number, clamp: HeroFitClamp) => {
+        content.style.setProperty('--hero-fit', String(scale))
+        content.dataset.heroClamp = clamp
+      }
+
+      let chosen = HERO_FIT_SCALES[0]
+      let clamp: HeroFitClamp = 'none'
+      let found = false
+
+      for (const scale of HERO_FIT_SCALES) {
+        apply(scale, 'none')
+        if (fits()) {
+          chosen = scale
+          found = true
+          break
+        }
+      }
+
+      if (!found) {
+        chosen = HERO_FIT_SCALES[HERO_FIT_SCALES.length - 1]
+        apply(chosen, 'title')
+        clamp = fits() ? 'title' : 'both'
+      }
+
+      apply(chosen, clamp)
+    }
+
+    const schedule = () => {
+      window.cancelAnimationFrame(raf)
+      raf = window.requestAnimationFrame(measure)
+    }
+
+    schedule()
+    const observer = new ResizeObserver(schedule)
+    observer.observe(frame)
+
+    return () => {
+      window.cancelAnimationFrame(raf)
+      observer.disconnect()
+    }
+  }, [key])
+
+  return { frameRef, contentRef }
+}
+
 export default function Hero({ eyebrow, title, description, imageUrl, buttons }: HeroProps) {
+  const fitKey = [
+    eyebrow,
+    title,
+    description,
+    buttons?.map((button) => button.text).join('|') ?? '',
+  ].join('§')
+
+  const { frameRef, contentRef } = useHeroFit(fitKey)
+
   return (
-    <section className="home-section relative min-h-screen overflow-hidden">
+    <section className="home-section relative min-h-screen h-svh overflow-hidden">
 
       {/* ── FONDO ─────────────────────────────────────────── */}
       <div className="absolute inset-0 overflow-hidden">
@@ -50,7 +131,11 @@ export default function Hero({ eyebrow, title, description, imageUrl, buttons }:
       </div>
 
       {/* ── CONTENIDO ─────────────────────────────────────── */}
-      <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col justify-end px-6 pb-30 md:pb-24">
+      <div
+        ref={frameRef}
+        className="hero-fit-frame absolute inset-0 z-10 flex flex-col justify-end px-6 pb-30 pt-28 md:pb-24"
+      >
+        <div ref={contentRef} className="hero-fit mx-auto w-full max-w-6xl">
 
         {/* Eyebrow en dorado */}
         <p className="home-section__eyebrow">
@@ -58,7 +143,7 @@ export default function Hero({ eyebrow, title, description, imageUrl, buttons }:
         </p>
 
         {/* Título hero: escala con breakpoints */}
-        <h1 className="home-section__title max-w-3xl text-5xl sm:text-6xl md:text-7xl lg:text-8xl">
+        <h1 className="home-section__title max-w-3xl break-words">
           {title}
         </h1>
 
@@ -101,6 +186,7 @@ export default function Hero({ eyebrow, title, description, imageUrl, buttons }:
           </div>
         )}
 
+        </div>
       </div>
     </section>
   )

@@ -116,6 +116,44 @@ body {
     color: var(--foreground);
   }
 
+  /* ── Hero: ajuste dinámico del título al alto disponible ─────────── */
+  .hero-fit .home-section__title {
+    font-size: calc(3rem * var(--hero-fit, 1));
+  }
+
+  @media (min-width: 640px) {
+    .hero-fit .home-section__title {
+      font-size: calc(3.75rem * var(--hero-fit, 1));
+    }
+  }
+
+  @media (min-width: 768px) {
+    .hero-fit .home-section__title {
+      font-size: calc(4.5rem * var(--hero-fit, 1));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .hero-fit .home-section__title {
+      font-size: calc(6rem * var(--hero-fit, 1));
+    }
+  }
+
+  .hero-fit[data-hero-clamp='title'] .home-section__title,
+  .hero-fit[data-hero-clamp='both'] .home-section__title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    overflow: hidden;
+  }
+
+  .hero-fit[data-hero-clamp='both'] .home-section__text {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 6;
+    overflow: hidden;
+  }
+
   .home-section__text {
     max-width: 32rem;
     font-size: 1rem;
@@ -182,6 +220,29 @@ body {
 @media (min-width: 640px) {
   .home-section__text {
     font-size: 1.125rem;
+  }
+}
+
+/* ── Hero: paddings verticales reducidos en viewports bajos ─────────── */
+/* Sin @layer a propósito: prevalece sobre las utilidades pt-28 / pb-30 / md:pb-24. */
+@media (max-height: 760px) {
+  .hero-fit-frame {
+    padding-top: 6rem;
+    padding-bottom: 5rem;
+  }
+}
+
+@media (max-height: 600px) {
+  .hero-fit-frame {
+    padding-top: 5.5rem;
+    padding-bottom: 2.5rem;
+  }
+}
+
+@media (max-height: 460px) {
+  .hero-fit-frame {
+    padding-top: 5.5rem;
+    padding-bottom: 0.5rem;
   }
 }
 
